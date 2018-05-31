@@ -278,9 +278,9 @@ class CornersProblem(search.SearchProblem):
         Stores the walls, pacman's starting position and corners.
         """
         self.walls = startingGameState.getWalls()
-        self.startingPosition = startingGameState.getPacmanPosition()
+        self.startingPosition = startingGameState.getPacmanPosition() #need to use
         top, right = self.walls.height-2, self.walls.width-2
-        self.corners = ((1,1), (1,top), (right, 1), (right, top))
+        self.corners = ((1,1), (1,top), (right, 1), (right, top)) #need to use
         for corner in self.corners:
             if not startingGameState.hasFood(*corner):
                 print 'Warning: no food in corner ' + str(corner)
@@ -289,8 +289,15 @@ class CornersProblem(search.SearchProblem):
         # in initializing the problem
         "*** YOUR CODE HERE ***"
 
-        self = self.top
-        self = self.right
+        """
+        You will need to choose a state representation that encodes all the information necessary
+        to detect whether all four corners have been reached.
+
+        """
+        self.visited = ()
+
+
+
 
     def getStartState(self):
         """
@@ -298,8 +305,7 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        corners_visited = (False, False, False, False) #Pacman hasn't visited any corners at start;
-        start = (self.startingPosition, corners_visited) #self.startingPosition was defined in __init__;
+        start = (self.startingPosition, self.visited) #self.startingPosition was defined in __init__;
         return start
         util.raiseNotDefined()
 
@@ -308,10 +314,8 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-
-
         corners = state[1] # the argument passed to state is getStartState. since getStartState returns start with the corners being the second item in the tuple, we can check if these corners are the goal state
-        return corners[0] and corners[1] and corners[2] and corners[3] #goal is when all corners are 1, or at the top level corner
+        return len(corners) == 4 #goal is when pacman has visited all corners. That is the case when self.visited is no longer null
         util.raiseNotDefined()
 
     def getSuccessors(self, state):
@@ -335,7 +339,27 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            x,y = state[0]
+            dx, dy = Actions.directionToVector(action) #computes distance
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
 
+            if hitsWall != True:
+                newPosition = (nextx, nexty)
+                cost = 1
+                visitedCorners = state[1]
+
+                if newPosition in self.corners and newPosition not in visitedCorners:
+                        visitedList = list(visitedCorners)
+                        visitedList.append(newPosition)
+                        visitedCorners = tuple(visitedList)
+                        newState = (newPosition, visitedCorners)
+                        successor = (newState, action, cost)
+                        successors.append(successor)
+                else:
+                        newState = (newPosition, visitedCorners)
+                        successor = (newState, action, cost)
+                        successors.append(successor)
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -371,6 +395,12 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
+
+
+
+
+
+
     return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
